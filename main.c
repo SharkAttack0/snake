@@ -49,50 +49,45 @@ struct coordinates {
 };
 
 int main(void) {
-    void board_reset(enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y]);
+    void board_init(enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y], struct coordinates *snake);
     void print_board(enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y]);
     void clear_screen(void);
     struct coordinates snake_move(struct coordinates *snake, int snake_size, enum direction snake_direction);
-    void set_snake_state(enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y], struct coordinates *snake, int snake_size, struct coordinates old_snake_end);
-
-    struct coordinates *snake;
-
-    snake = malloc(sizeof(struct coordinates)* SNAKE_INIT_LENGTH);
-    //snake's body is a single coordinate (head), followed by the tail
-    //the tail has a starting point
-    //the tail's parts are moving to the next part's position until it reaches
-    //the head
-
-    //coordinates for head
-
-
+    void set_snake_state(enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y], struct coordinates *snake, struct coordinates old_snake_end);
+    struct coordinates* snake_init();
+    
     enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y];
-
-    board_reset(board);
-
-    snake[0].x = 0;
-    snake[0].y = 5;
-    snake[1].x = 0;
-    snake[1].y = 4;
-    snake[2].x = 0;
-    snake[2].y = 3;
-
+    struct coordinates *snake = snake_init();
+    board_init(board, snake);
     while (1) {
         clear_screen();
         struct coordinates old_tail = snake_move(snake, SNAKE_INIT_LENGTH, RIGHT);
-        set_snake_state(board, snake, SNAKE_INIT_LENGTH, old_tail);
+        set_snake_state(board, snake, old_tail);
         print_board(board);
         sleep(GAME_RESET_RATE);
     }
     return 0;
 }
-
-void board_reset(enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y]) {
+struct coordinates* snake_init(){
+    struct coordinates *snake;
+    snake = malloc(sizeof(struct coordinates)* SNAKE_INIT_LENGTH);
+    snake[0].x = 0;
+    snake[0].y = 5;
+    for(int i = 1; i < SNAKE_INIT_LENGTH; i++) {
+        snake[i].x = snake[0].x;
+        snake[i].y = snake[0].y - i; 
+    }
+    return snake;
+}
+void board_init(enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y], struct coordinates *snake) {
     // sets all board state to be empty 
     for (int i = 0; i < BOARD_SIZE_X; i++) {
         for (int j = 0; j < BOARD_SIZE_Y; j++) {
             board[i][j] = EMPTY;
         }
+    }
+    for (int i = 0; i < SNAKE_INIT_LENGTH; i++) {
+        board[snake[i].x][snake[i].y] = SNAKE;
     }
 }
 
@@ -124,10 +119,13 @@ void print_board(enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y]) {
     }
 }
 
-void set_snake_state(enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y], struct coordinates *snake, int snake_size, struct coordinates old_snake_end) { 
-    for (int i = 0; i < snake_size; i++) {
-        board[snake[i].x][snake[i].y] = SNAKE;
-    }
+void set_snake_state(enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y], struct coordinates *snake, struct coordinates old_snake_end) { 
+    //this is 1 of 2 ways of updating the snake
+    //way 2 would be clearing all the board of snake state
+    //PRO is that old_snake_end coordinates is not required
+    //CON is that it would hafe to clear the whole snake and draw it again
+    //(requires to cycle through the board and then each snake piece)
+    board[snake[0].x][snake[0].y] = SNAKE;
     board[old_snake_end.x][old_snake_end.y] = EMPTY;
 }
 
