@@ -28,7 +28,7 @@ enum snake_state snake_update(struct coordinates *snake, int* snake_length, enum
             //}
             snake[*snake_length].x = old_tail.x;
             snake[*snake_length].y = old_tail.y;
-            snake_length += 1;
+            *snake_length += 1;
             break;
         case SnakeCollideEmpty:
             //update snake's body
@@ -69,12 +69,16 @@ void snake_update_body(struct coordinates *snake, int snake_length, struct coord
                 temp_previous_part.x = temp_current_part.x;
                 temp_previous_part.y = temp_current_part.y;
             }
+            //current solution for storing old tail coordinates:
+            //it will be kept at snake_length position
+            //yea yea maybe it's a dumb idea but code gets messy otherwise
+            snake[snake_length].x = temp_current_part.x;
+            snake[snake_length].y = temp_current_part.y;
 }
 
 enum snake_state snake_head_preview_check(struct coordinates snake_head_preview, enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y]) {
     switch(board[snake_head_preview.x][snake_head_preview.y]) {
         case CONSUMABLE:
-            //don't update snake's tail for 1 update
             return SnakeCollideConsumable;
             break;
         case OBSTACLE:

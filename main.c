@@ -44,12 +44,18 @@ int main(void) {
     int *snake_length_p = &snake_length;
     board_init(board, snake);
     int c = user_input();
-    struct coordinates consumable = spawn_consumable(board);
+    struct coordinates consumable = consumable_init(board);
+    struct coordinates *consumable_p = &consumable;
 
     while (1) {
         clear_screen();
-        snake_update(snake, snake_length_p, RIGHT, board);
+        enum snake_state snake_state = snake_update(snake, snake_length_p, RIGHT, board);
+        int snake_ate = consumable_check(consumable_p, snake_state);
+        update_board(board, snake, snake_length, consumable);
         print_board(board);
+        if(snake_ate) {
+            printf("\n SNAKE ATE");
+        }
         sleep(GAME_RESET_RATE);
     }
     return 0;
