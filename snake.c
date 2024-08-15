@@ -40,6 +40,9 @@ enum snake_state snake_update(struct coordinates *snake, int* snake_length, enum
         case SnakeCollideSnake:
             //game over
             break;
+        case SnakeCollideBoardEdge:
+            //game over (for now)
+            break;
     }
     return snake_state;
 }
@@ -77,6 +80,12 @@ void snake_update_body(struct coordinates *snake, int snake_length, struct coord
 }
 
 enum snake_state snake_head_preview_check(struct coordinates snake_head_preview, enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y]) {
+    if (snake_head_preview.x == BOARD_SIZE_X || snake_head_preview.x < 0
+    || snake_head_preview.y == BOARD_SIZE_Y || snake_head_preview.y < 0) {
+        //snake went beyond the edge
+        //(logic not finished)
+        return SnakeCollideBoardEdge;
+    }
     switch(board[snake_head_preview.x][snake_head_preview.y]) {
         case CONSUMABLE:
             return SnakeCollideConsumable;

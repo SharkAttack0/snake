@@ -1,11 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <time.h>
-
 //snake game - have a board on cml
-//have a snake, which is can move around on the board
+//have a snake, which can move around on the board
 //have an apple, which can get consumed by the snake
 //when consuming an apple, grow the snake by 1 size, spawn another apple not on 
 //the snake
@@ -13,9 +7,8 @@
 
 //TBD
 //consumable (rng element)
-//collision logic (hard)
 //user input
-//refactor
+//map
 
 //(probably not worth implementing)
 //idea for rewriting snake's body logic:
@@ -26,7 +19,11 @@
 //OR:
 //have head coordinates and tail coordinates
 
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <time.h>
 
 #include "general.h"
 #include "board.h"
@@ -46,27 +43,37 @@ int main(void) {
     int c = user_input();
     struct coordinates consumable = consumable_init(board);
     struct coordinates *consumable_p = &consumable;
+    int game_over = 0;
 
     while (1) {
         clear_screen();
         enum snake_state snake_state = snake_update(snake, snake_length_p, RIGHT, board);
+        switch (snake_state) {
+            case SnakeCollideObstacle:
+            case SnakeCollideBoardEdge:
+            case SnakeCollideSnake:
+                game_over = 1;
+                break;
+            default:
+                break;
+        }
+        if (game_over) {
+            printf("\nGAME OVER! YOU LOST!");
+            break;
+        }
         int snake_ate = consumable_check(consumable_p, snake_state);
         update_board(board, snake, snake_length, consumable);
         print_board(board);
         if(snake_ate) {
             printf("\n SNAKE ATE");
         }
-        sleep(GAME_RESET_RATE);
+        usleep(GAME_UPDATE_RATE);
     }
     return 0;
 }
 
 int user_input() {
     return 0;
-}
-
-int rng() {
-    return random();
 }
 
 void clear_screen(void) {

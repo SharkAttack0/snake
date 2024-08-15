@@ -3,10 +3,8 @@
 #define OBSTACLE_CHAR ('I')
 #define SNAKE_CHAR ('O')
 #define CONSUMABLE_CHAR ('A')
-//how  often (in seconds) to progress game by 1 update
-#define GAME_RESET_RATE (1.0)
-//0.0666666666666 = 15 FPS
-//0.0166666666666 = 60 FPS
+//how often (in microseconds) to update
+#define GAME_UPDATE_RATE (500 * 1000)
 
 #define BOARD_SIZE_X (20)
 #define BOARD_SIZE_Y (50)
@@ -31,6 +29,7 @@ enum snake_state {
     SnakeCollideConsumable,
     SnakeCollideSnake,
     SnakeCollideObstacle,
+    SnakeCollideBoardEdge,
 };
 
 enum direction {
