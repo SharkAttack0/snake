@@ -9,6 +9,11 @@
 //consumable (rng element)
 //user input
 //map
+//multithreading
+//signals
+//benchmark
+//manual translation to assembly
+//colors?
 
 //(probably not worth implementing)
 //idea for rewriting snake's body logic:
