@@ -1,5 +1,5 @@
-//snake game - have a board on cml
-//have a snake, which can move around on the board
+//snake game - have a map on cml
+//have a snake, which can move around on the map
 //have an apple, which can get consumed by the snake
 //when consuming an apple, grow the snake by 1 size, spawn another apple not on 
 //the snake
@@ -31,7 +31,7 @@
 #include <time.h>
 
 #include "general.h"
-#include "board.h"
+#include "map.h"
 #include "consumable.h"
 #include "snake.h"
 
@@ -40,22 +40,23 @@ int main(void) {
     int user_input();
     int rng();
 
-    enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y];
+    clear_screen();
+    struct map map = create_map("maps/map0.txt");
     struct coordinates *snake = snake_init();
     int snake_length = SNAKE_INIT_LENGTH;
     int *snake_length_p = &snake_length;
-    board_init(board, snake);
-    int c = user_input();
-    struct coordinates consumable = consumable_init(board);
+
+    //int c = user_input();
+    struct coordinates consumable = consumable_init();
     struct coordinates *consumable_p = &consumable;
     int game_over = 0;
 
     while (1) {
         clear_screen();
-        enum snake_state snake_state = snake_update(snake, snake_length_p, RIGHT, board);
+        enum snake_state snake_state = snake_update(snake, snake_length_p, RIGHT, map);
         switch (snake_state) {
             case SnakeCollideObstacle:
-            case SnakeCollideBoardEdge:
+            case SnakeCollideMapEdge:
             case SnakeCollideSnake:
                 game_over = 1;
                 break;
@@ -66,9 +67,9 @@ int main(void) {
             printf("\nGAME OVER! YOU LOST!");
             break;
         }
-        int snake_ate = consumable_check(consumable_p, snake_state);
-        update_board(board, snake, snake_length, consumable);
-        print_board(board);
+        int snake_ate = consumable_check(consumable_p, snake_state, map);
+        update_map(map, snake, snake_length, consumable);
+        print_map_state(map);
         if(snake_ate) {
             printf("\n SNAKE ATE");
         }

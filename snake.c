@@ -1,18 +1,20 @@
-#include "general.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-enum snake_state snake_update(struct coordinates *snake, int* snake_length, enum direction snake_direction, enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y]) {
+#include "general.h"
+#include "snake.h"
+
+enum snake_state snake_update(struct coordinates *snake, int* snake_length, enum direction snake_direction, struct map map) {
     //read user input and update snake's position
     //must check where is head's new position and react accordingly
-    struct coordinates* snake_reinit(struct coordinates* snake, int snake_length);
-    void snake_update_body(struct coordinates *snake, int snake_length, struct coordinates snake_head_preview);
-    enum snake_state snake_head_preview_check(struct coordinates snake_head_preview, enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y]);
+    enum snake_state snake_head_preview_check(struct coordinates snake_head_preview, struct map map);
     struct coordinates snake_head_preview_set(struct coordinates* snake, enum direction snake_direction);
-
-
+    void snake_update_body(struct coordinates *snake, int snake_length, struct coordinates snake_head_preview);
+    
+    
+    
     struct coordinates snake_head_preview = snake_head_preview_set(snake, snake_direction);
-    enum snake_state snake_state = snake_head_preview_check(snake_head_preview, board);
+    enum snake_state snake_state = snake_head_preview_check(snake_head_preview, map);
     switch(snake_state) {
         case SnakeCollideConsumable:
             //update snake's body and increase length by 1
@@ -40,7 +42,7 @@ enum snake_state snake_update(struct coordinates *snake, int* snake_length, enum
         case SnakeCollideSnake:
             //game over
             break;
-        case SnakeCollideBoardEdge:
+        case SnakeCollideMapEdge:
             //game over (for now)
             break;
     }
@@ -79,14 +81,15 @@ void snake_update_body(struct coordinates *snake, int snake_length, struct coord
             snake[snake_length].y = temp_current_part.y;
 }
 
-enum snake_state snake_head_preview_check(struct coordinates snake_head_preview, enum board_state board[BOARD_SIZE_X][BOARD_SIZE_Y]) {
-    if (snake_head_preview.x == BOARD_SIZE_X || snake_head_preview.x < 0
-    || snake_head_preview.y == BOARD_SIZE_Y || snake_head_preview.y < 0) {
+enum snake_state snake_head_preview_check(struct coordinates snake_head_preview, struct map map) {
+    //possible off by 1 error
+    if (snake_head_preview.x >= map.line_num || snake_head_preview.x < 0
+    || snake_head_preview.y > map.line_len[snake_head_preview.x] || snake_head_preview.y < 0) {
         //snake went beyond the edge
         //(logic not finished)
-        return SnakeCollideBoardEdge;
+        return SnakeCollideMapEdge;
     }
-    switch(board[snake_head_preview.x][snake_head_preview.y]) {
+    switch(map.contents[snake_head_preview.x][snake_head_preview.y].state) {
         case CONSUMABLE:
             return SnakeCollideConsumable;
             break;
@@ -100,7 +103,7 @@ enum snake_state snake_head_preview_check(struct coordinates snake_head_preview,
             return SnakeCollideEmpty;
             break;
         default:
-            printf("ERROR: snake_state didn't have any case match for board_state");
+            printf("ERROR: snake_state didn't have any case match for map_state");
             exit(1);
     }
 }

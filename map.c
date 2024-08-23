@@ -1,11 +1,98 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "general.h"
 #include "map.h"
+
+void map_state_init(struct map map) {
+    for (int i = 0; i < map.line_num; i++) {
+        for (int j = 0; j < map.line_len[i]; j++) {
+            switch (map.contents[i][j].symbol) {
+                case '\r':
+                case '\n':
+                case EOF:
+                case EMPTY_CHAR:
+                    map.contents[i][j].state = EMPTY;
+                    break;
+                case OBSTACLE_CHAR:
+                    map.contents[i][j].state = OBSTACLE;
+                    break;
+                // Special logic is required in order to init snake and consumable position
+                case SNAKE_CHAR:
+                case CONSUMABLE_CHAR:
+                default:
+                    printf("\nERROR:INVALID CHAR AT map_state_init");
+                    exit(1);
+            }
+        }
+    }
+}
+
+void validate_map_chars(struct map map) {
+    for (int i = 0; i < map.line_num; i++) {
+        for (int j = 0; j < map.line_len[i]; j++) {
+            switch (map.contents[i][j].symbol) {
+                case OBSTACLE_CHAR:
+                case EMPTY_CHAR:
+                case '\n':
+                case '\r':
+                case EOF:
+                    break;
+                default:
+                    printf("\nWARNING: UNDEFINED CHAR IN MAP FILE:%c\n", map.contents[i][j].symbol);
+                    printf("\nWILL SET ITS STATE TO \"OBSTACLE\"");
+                    map.contents[i][j].symbol = OBSTACLE_CHAR;
+            }
+        }
+    }
+}
+
+
+void print_map_state(struct map map) {
+    for (int i = 0; i < map.line_num; i++) {
+        for (int j = 0; j < map.line_len[i]; j++) {
+            char field_char;
+            switch (map.contents[i][j].state) {
+                case EMPTY:
+                    field_char = EMPTY_CHAR;
+                    break;
+                case OBSTACLE:
+                    field_char = OBSTACLE_CHAR;
+                    break;
+                case SNAKE: 
+                    field_char = SNAKE_CHAR;
+                    break;
+                case CONSUMABLE:
+                    field_char = CONSUMABLE_CHAR;
+                    break; 
+            }
+            printf("%c", field_char);
+        }
+        printf("\n");
+    }
+}
+
+
+void update_map(struct map map, struct coordinates* snake, int snake_length, struct coordinates consumable) {
+
+    for(int i = 0; i < map.line_num; i++){
+        for(int j = 0; j < map.line_len[i]; j++) {
+            if (map.contents[i][j].state == SNAKE || map.contents[i][j].state == CONSUMABLE) {
+                map.contents[i][j].state = EMPTY;
+            } 
+        }
+    }
+    for(int i = 0; i < snake_length; i++) {
+        map.contents[snake[i].x][snake[i].y].state = SNAKE;
+    }
+    map.contents[consumable.x][consumable.y].state = CONSUMABLE;
+}
 
 struct map create_map(char* file_path) {
     struct map map = malloc_map(file_path);
-    init_map(file_path, map);
+    init_map_contents(file_path, map);
+    validate_map_chars(map);
+    map_state_init(map);
     print_map(map);
     return map;
 }
@@ -13,11 +100,12 @@ struct map create_map(char* file_path) {
 struct map malloc_map(char* file_path) {
     int file_line_num(FILE *file);
 
-    FILE *file = fopen(file_path, "r");
     struct map map;
-
+    map.map_file_path = file_path;
+    FILE *file = fopen(map.map_file_path, "r");
+    
     map.line_num = file_line_num(file);
-    map.map = malloc(sizeof(char*) * map.line_num);
+    map.contents = malloc(sizeof(struct map_contents*) * map.line_num);
     map.line_len = malloc(sizeof(int) * map.line_num);
 
     int line_size = 0;
@@ -27,7 +115,7 @@ struct map malloc_map(char* file_path) {
         ch = getc(file);
         line_size++;
         if (ch == '\n' || ch == EOF) {
-            map.map[cur_line] = malloc(sizeof(char) * line_size);
+            map.contents[cur_line] = malloc((sizeof(struct map_contents)) * line_size);
             map.line_len[cur_line] = line_size;
 
             cur_line++;
@@ -39,14 +127,14 @@ struct map malloc_map(char* file_path) {
 }
 
 
-void init_map(char* file_path, struct map map) {
+void init_map_contents(char* file_path, struct map map) {
     FILE *file = fopen(file_path, "r");
     char ch;
     rewind(file);
     for(int i = 0; i < map.line_num; i++) {
         for(int j = 0; j < map.line_len[i]; j++) {
             ch = getc(file);
-            map.map[i][j] = ch;
+            map.contents[i][j].symbol = ch;
         }
     }
 }
@@ -54,10 +142,10 @@ void init_map(char* file_path, struct map map) {
 void print_map(struct map map) {
     for(int i = 0; i < map.line_num; i++) {
         for(int j = 0; j < map.line_len[i]; j++) {
-            if (map.map[i][j] == EOF) {
+            if (map.contents[i][j].symbol == EOF) {
                 break;
             }
-            printf("%c", map.map[i][j]);
+            printf("%c", map.contents[i][j].symbol);
         }
     }
     printf("\n");
