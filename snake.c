@@ -131,7 +131,6 @@ struct coordinates snake_head_preview_set(struct coordinates* snake, enum direct
 
     if ( temp_snake_head.x == snake[1].x &&  temp_snake_head.y == snake[1].y) {
         printf("SNAKE'S HEAD WENT BACKWARDS");
-        exit(1);
     }
     return temp_snake_head;
 }
