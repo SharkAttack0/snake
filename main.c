@@ -28,12 +28,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <termios.h>
 #include <time.h>
 
 #include "general.h"
 #include "map.h"
 #include "consumable.h"
 #include "snake.h"
+#include "user_input.h"
 
 int main(void) {
     void clear_screen(void);
@@ -46,14 +48,17 @@ int main(void) {
     int snake_length = SNAKE_INIT_LENGTH;
     int *snake_length_p = &snake_length;
 
-    //int c = user_input();
     struct coordinates consumable = consumable_init();
     struct coordinates *consumable_p = &consumable;
     int game_over = 0;
 
+    struct termios default_terminal = set_noncan_nonecho();
+    enum direction user_direction = RIGHT;
+    
     while (1) {
         clear_screen();
-        enum snake_state snake_state = snake_update(snake, snake_length_p, RIGHT, map);
+        user_direction = read_user_direction(user_direction);
+        enum snake_state snake_state = snake_update(snake, snake_length_p, user_direction, map);
         switch (snake_state) {
             case SnakeCollideObstacle:
             case SnakeCollideMapEdge:
@@ -75,10 +80,7 @@ int main(void) {
         }
         usleep(GAME_UPDATE_RATE);
     }
-    return 0;
-}
-
-int user_input() {
+    set_terminal_default(default_terminal);
     return 0;
 }
 
