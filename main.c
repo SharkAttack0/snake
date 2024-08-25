@@ -39,8 +39,6 @@
 
 int main(void) {
     void clear_screen(void);
-    int user_input();
-    int rng();
 
     clear_screen();
     struct map map = create_map("maps/map0.txt");
@@ -50,34 +48,41 @@ int main(void) {
 
     struct coordinates consumable = consumable_init();
     struct coordinates *consumable_p = &consumable;
+
     int game_over = 0;
+    int points = 0;
 
     struct termios default_terminal = set_noncan_nonecho();
     enum direction user_direction = RIGHT;
-    
+    sleep(1);
+
     while (1) {
-        clear_screen();
+        
         user_direction = read_user_direction(user_direction);
         enum snake_state snake_state = snake_update(snake, snake_length_p, user_direction, map);
+
         switch (snake_state) {
             case SnakeCollideObstacle:
             case SnakeCollideMapEdge:
             case SnakeCollideSnake:
                 game_over = 1;
                 break;
+            case SnakeCollideConsumable:
+                points++;
+                consumable_respawn(consumable_p, map);
             default:
                 break;
         }
         if (game_over) {
-            printf("\nGAME OVER! YOU LOST!");
+            printf("\nGAME OVER! YOU LOST!\n");
+            printf("\tScore: %d\n", points);
             break;
         }
-        int snake_ate = consumable_check(consumable_p, snake_state, map);
+
+        clear_screen();
         update_map(map, snake, snake_length, consumable);
         print_map_state(map);
-        if(snake_ate) {
-            printf("\n SNAKE ATE");
-        }
+
         usleep(GAME_UPDATE_RATE);
     }
     set_terminal_default(default_terminal);
